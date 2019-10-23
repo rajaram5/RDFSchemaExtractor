@@ -25,7 +25,7 @@
  * To change this template uploadFileToAgraphWorkFlow, choose Tools | Templates
  * and open the template in the editor.
  */
-package nl.rajaram.drawingextractor.api.service;
+package nl.rajaram.rdfschemaextractor.api.service;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
@@ -37,10 +37,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
-import nl.rajaram.drawingextractor.api.utils.OWL2Utils;
-import nl.rajaram.drawingextractor.model.drawio.RDFInstance;
-import nl.rajaram.drawingextractor.model.drawio.Property;
-import nl.rajaram.drawingextractor.model.io.DrawioParser;
+import nl.rajaram.rdfschemaextractor.api.utils.OWL2Utils;
+import nl.rajaram.rdfschemaextractor.model.drawio.RDFInstance;
+import nl.rajaram.rdfschemaextractor.model.drawio.Property;
+import nl.rajaram.rdfschemaextractor.model.io.DrawioParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.rdf4j.model.IRI;

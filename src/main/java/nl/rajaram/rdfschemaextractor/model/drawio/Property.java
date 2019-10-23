@@ -25,32 +25,78 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package nl.rajaram.drawingextractor.api.configuration;
+package nl.rajaram.rdfschemaextractor.model.drawio;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import org.eclipse.rdf4j.model.IRI;
 
 /**
- * Swagger configurations
+ * Object to represent properties of RDF instance
  *
  * @author Rajaram Kaliyaperumal <rr.kaliyaperumal@gmail.com>
- * @since 2018-03-21
+ * @since 2019-10-17
  * @version 0.1
  */
-@Configuration
-@EnableSwagger2
-public class SwaggerConfig {
+public class Property {
+    
+    private IRI type;
+    private IRI iri;
+    private IRI rangeIri;
+    private boolean isOptional = false;
 
-    @Bean
-    public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2).select().apis(RequestHandlerSelectors
-                .basePackage("nl.rajaram.drawingextractor.api.controller"))
-                .paths(PathSelectors.any())
-                .build();
+    /**
+     * @return the type
+     */
+    public IRI getType() {
+        return type;
     }
+
+    /**
+     * @param type the type to set
+     */
+    public void setType(IRI type) {
+        this.type = type;
+    }
+
+    /**
+     * @return the iri
+     */
+    public IRI getIri() {
+        return iri;
+    }
+
+    /**
+     * @param iri the iri to set
+     */
+    public void setIri(IRI iri) {
+        this.iri = iri;
+    }
+
+    /**
+     * @return the rangeIri
+     */
+    public IRI getRangeIri() {
+        return rangeIri;
+    }
+
+    /**
+     * @param rangeIri the rangeIri to set
+     */
+    public void setRangeIri(IRI rangeIri) {
+        this.rangeIri = rangeIri;
+    }
+
+    /**
+     * @return the isOptional
+     */
+    public boolean isIsOptional() {
+        return isOptional;
+    }
+
+    /**
+     * @param isOptional the isOptional to set
+     */
+    public void setIsOptional(boolean isOptional) {
+        this.isOptional = isOptional;
+    }    
+         
 }

@@ -25,36 +25,47 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package nl.rajaram.drawingextractor.api.utils;
+package nl.rajaram.rdfschemaextractor.model.io;
 
-/**
- *
- * @author rajaram
- */
+import com.google.common.base.Preconditions;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.annotation.Nonnull;
+import javax.xml.parsers.ParserConfigurationException;
 import no.acando.xmltordf.Builder;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
-
-public class TestCode {
-
-    public static void main(String[] args) throws IOException, SAXException, ParserConfigurationException {
+/**
+ * Parser for interacting with draw.io xml file
+ *
+ * @author Rajaram Kaliyaperumal <rr.kaliyaperumal@gmail.com>
+ * @since 2019-10-17
+ * @version 0.1
+ */
+public class DrawioParser {
+    
+    /**
+     * Parse XML string of drawio content to create rdf string
+     *
+     * @param drawioXMLFile Drawio xml content
+     * @return rdf string
+     * @throws java.io.FileNotFoundException Throws this exception if input file is not found
+     */
+    public String parse(@Nonnull InputStream drawioXML) throws FileNotFoundException, ParserConfigurationException, SAXException, IOException {
+        Preconditions.checkNotNull(drawioXML, "Draw.io XML content must not be null.");
         
-        File file = new File("/home/rajaram/Downloads/Test.xml");        
-        BufferedInputStream in = new BufferedInputStream(
-                new FileInputStream(file));
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        
         Builder.getAdvancedBuilderStream().
                 setBaseNamespace("http://rdf.biosemantics.org/xml2rdf/", 
                         Builder.AppliesTo.bothElementsAndAttributes)
                 .uuidBasedIdInsteadOfBlankNodes("http://rdf.biosemantics.org/resource/")
-                .build().convertToStream(in, out);
+                .build().convertToStream(drawioXML, out);
         
-        String str = out.toString();
-        System.out.println(str);
-
+        String rdfString = out.toString();
+        
+        return rdfString;
     }
-
+    
 }

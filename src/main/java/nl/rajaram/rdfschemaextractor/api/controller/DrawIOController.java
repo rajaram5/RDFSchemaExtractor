@@ -25,12 +25,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package nl.rajaram.drawingextractor.api.controller;
+package nl.rajaram.rdfschemaextractor.api.controller;
 
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
-import nl.rajaram.drawingextractor.api.service.DrawIoService;
-import nl.rajaram.drawingextractor.api.utils.RDFUtils;
+import nl.rajaram.rdfschemaextractor.api.service.DrawIoService;
+import nl.rajaram.rdfschemaextractor.api.utils.RDFUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.rdf4j.model.ValueFactory;

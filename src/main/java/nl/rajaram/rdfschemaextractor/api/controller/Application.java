@@ -20,14 +20,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package nl.rajaram.drawingextractor.api.controller;
+package nl.rajaram.rdfschemaextractor.api.controller;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"nl.rajaram.drawingextractor.api.*"})
+@ComponentScan(basePackages = {"nl.rajaram.rdfschemaextractor.api.*"})
 public class Application {
     
     public static void main(String[] args) {

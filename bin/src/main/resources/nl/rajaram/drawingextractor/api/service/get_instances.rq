@@ -1,9 +1,0 @@
-PREFIX ex: <http://rdf.biosemantics.org/xml2rdf/>
-PREFIX acan: <http://acandonorway.github.com/XmlToRdf/ontology.ttl#>
-
-SELECT DISTINCT ?instanceId ?instanceStyleAttribute WHERE { 
-	?instance ex:id ?instanceId;
-           acan:hasChild [ex:style ?instanceStyleAttribute].
-    
-    FILTER regex(str(?instanceStyleAttribute), "rhombus").   
-}

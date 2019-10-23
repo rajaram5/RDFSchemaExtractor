@@ -37,14 +37,15 @@
         <springfox.version>2.9.2</springfox.version>
         <commons-io.version>2.6</commons-io.version>
         <rdf4j.version>3.0.1</rdf4j.version>
-        <plugin.mavenlic.version>3.0</plugin.mavenlic.version>
+        <plugin.mavenlic.version>3.0</plugin.mavenlic.version>        
+        <logging_log4j.version>2.12.1</logging_log4j.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>        
+        </dependency>   
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>

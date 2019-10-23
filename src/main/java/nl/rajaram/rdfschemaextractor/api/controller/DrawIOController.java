@@ -52,7 +52,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/drawIo")
 public class DrawIOController {
-    private final ValueFactory VALUE_FACTORY = SimpleValueFactory.getInstance();
+    
     @Autowired
     private DrawIoService drawIoService;
     

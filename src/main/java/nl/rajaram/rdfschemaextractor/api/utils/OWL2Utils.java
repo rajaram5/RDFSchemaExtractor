@@ -35,7 +35,6 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import nl.rajaram.rdfschemaextractor.model.drawio.Property;
 import nl.rajaram.rdfschemaextractor.model.drawio.RDFInstance;
-import org.apache.logging.log4j.LogManager;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;

@@ -35,8 +35,6 @@ import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCAT;
@@ -47,7 +45,6 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFHandler;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
 import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.RDFWriter;
@@ -65,65 +62,51 @@ import org.eclipse.rdf4j.rio.helpers.JSONLDSettings;
  */
 public class RDFUtils {
     
-    private static final Logger LOGGER = LogManager.getLogger(RDFUtils.class);
     public static final RDFFormat FILE_FORMAT = RDFFormat.TURTLE;   
     
-    public static String getString(@Nonnull String content, @Nonnull RDFFormat format)
+    
+    /**
+     * Convert RDF string from one RDF format to another
+     * 
+     * @param content   RDF content as a String object
+     * @param format    RDF format  
+     * @return          RDF statements as String object 
+     * @throws Exception 
+     */
+    public static String convertRDFString(@Nonnull String content, @Nonnull RDFFormat format)
             throws Exception {
         Preconditions.checkNotNull(content, "content object must not be null.");
         Preconditions.checkNotNull(format, "RDF format must not be null.");
         StringWriter sw = new StringWriter();
         RDFWriter writer = Rio.createWriter(format, sw);
         writer.getWriterConfig().set(JSONLDSettings.JSONLD_MODE, JSONLDMode.COMPACT);
-        List<Statement> statement = getContentAsStatements(content, "");
-        try {
-            propagateToHandler(statement, writer);
-        } catch (RepositoryException | RDFHandlerException ex) {
-            LOGGER.error("Error reading RDF statements");
-            String errMsg = ex.getMessage();
-            throw new Exception(errMsg);
-        }
-        return sw.toString();
-    }
-    
-    
-    private static void propagateToHandler(List<Statement> statements, RDFHandler handler)
-            throws RDFHandlerException, RepositoryException {
-        handler.startRDF();
-        handler.handleNamespace(RDF.PREFIX, RDF.NAMESPACE);
-        handler.handleNamespace(RDFS.PREFIX, RDFS.NAMESPACE);
-        handler.handleNamespace(DCAT.PREFIX, DCAT.NAMESPACE);
-        handler.handleNamespace(XMLSchema.PREFIX, XMLSchema.NAMESPACE);
-        handler.handleNamespace(OWL.PREFIX, OWL.NAMESPACE);
-        handler.handleNamespace(DCTERMS.PREFIX, DCTERMS.NAMESPACE);
-        handler.handleNamespace("r2rml", "http://www.w3.org/ns/r2rml#");
-        handler.handleNamespace("rml", "http://semweb.mmlab.be/ns/rml#");
+        List<Statement> statements = convertRDFStringToStatements(content, "", FILE_FORMAT);
         
-        for (Statement st : statements) {
-            handler.handleStatement(st);
-        }
-        handler.endRDF();
-    }
+        return getString(statements, format);
+    }  
+    
     
     
     /**
-     * Method to read the content of a turtle file
+     * Convert RDF string to RDF statement list
      * 
-     * @param content Turtle string
-     * @param baseURI
+     * @param content   RDF content as a string
+     * @param baseURI   Base URL of the RDF string
+     * @param format    RDF format of the RDF string 
      * @return File content as a string
      */
-    public static List<Statement> getContentAsStatements(String content, String baseURI)  {        
+    public static List<Statement> convertRDFStringToStatements(String content, String baseURI,
+            RDFFormat format)  {        
         List<Statement> statements = null;  
         try {
             StringReader reader = new StringReader(content);
             Model model;
-            model = Rio.parse(reader, baseURI, FILE_FORMAT);
+            model = Rio.parse(reader, baseURI, format);
             Iterator<Statement> it = model.iterator();
             statements =  Lists.newArrayList(it);
         } catch (IOException | RDFParseException | 
                 UnsupportedRDFormatException ex) {
-            LOGGER.error("Error getting turle file {}", ex);          
+            //LOGGER.error("Error getting turle file {}", ex);          
         }         
         return statements;
     }
@@ -141,6 +124,41 @@ public class RDFUtils {
         } else {
             return RDFFormat.TURTLE;
         }
+    }
+    
+    
+    /**
+     * Convert RDF statement List object to RDF String
+     * @param statements    List of RDF statements
+     * @param format        RDF format     
+     * @return              RDF statements as String object
+     * @throws RDFHandlerException
+     * @throws RepositoryException 
+     */    
+    public static String getString(List<Statement> statements, RDFFormat format)
+            throws RDFHandlerException, RepositoryException {
+
+        StringWriter sw = new StringWriter();
+        RDFWriter writer = Rio.createWriter(format, sw);
+        writer.getWriterConfig().set(JSONLDSettings.JSONLD_MODE, JSONLDMode.COMPACT);
+
+        try {
+            writer.startRDF();
+            writer.handleNamespace(RDF.PREFIX, RDF.NAMESPACE);
+            writer.handleNamespace(RDFS.PREFIX, RDFS.NAMESPACE);
+            writer.handleNamespace(DCAT.PREFIX, DCAT.NAMESPACE);
+            writer.handleNamespace(XMLSchema.PREFIX, XMLSchema.NAMESPACE);
+            writer.handleNamespace(OWL.PREFIX, OWL.NAMESPACE);
+            writer.handleNamespace(DCTERMS.PREFIX, DCTERMS.NAMESPACE);
+            for (Statement st : statements) {
+                writer.handleStatement(st);
+            }
+            writer.endRDF();
+        } catch (RepositoryException | RDFHandlerException ex) {
+            String errMsg = ex.getMessage();            
+            //LOGGER.error("Error reading RDF statements. Error message : " +errMsg);
+        }
+        return sw.toString();
     }
 
     

@@ -29,7 +29,6 @@ package nl.rajaram.rdfschemaextractor.api.utils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -42,19 +41,10 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.vocabulary.DCAT;
-import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
-import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFHandlerException;
-import org.eclipse.rdf4j.rio.RDFWriter;
-import org.eclipse.rdf4j.rio.Rio;
-import org.eclipse.rdf4j.rio.helpers.JSONLDMode;
-import org.eclipse.rdf4j.rio.helpers.JSONLDSettings;
 
 /**
  * Utils class to convert object to OWL RDF string
@@ -64,9 +54,6 @@ import org.eclipse.rdf4j.rio.helpers.JSONLDSettings;
  * @version 0.1
  */
 public class OWL2Utils {
-    
-      private static final org.apache.logging.log4j.Logger LOGGER
-            = LogManager.getLogger(OWL2Utils.class);
       
       private static final ValueFactory VALUEFACTORY = SimpleValueFactory.getInstance();
     
@@ -78,7 +65,7 @@ public class OWL2Utils {
         
         List<Statement> stmt = getInstanceStaements(instance);
         
-        return statementsToString(stmt, format);        
+        return RDFUtils.getString(stmt, format);        
     }
       
     public static String getString(@Nonnull List<RDFInstance> instances,
@@ -94,7 +81,7 @@ public class OWL2Utils {
             stmt.addAll(getInstanceStaements(ins));
         }
         
-        return statementsToString(stmt, format);        
+        return RDFUtils.getString(stmt, format);        
     }
     
     
@@ -127,33 +114,5 @@ public class OWL2Utils {
         
         return statements;
         
-    }
-    
-    
-    private static String statementsToString(List<Statement> statements, RDFFormat format)
-            throws RDFHandlerException, RepositoryException {
-
-        StringWriter sw = new StringWriter();
-        RDFWriter writer = Rio.createWriter(format, sw);
-        writer.getWriterConfig().set(JSONLDSettings.JSONLD_MODE, JSONLDMode.COMPACT);
-
-        try {
-            writer.startRDF();
-            writer.handleNamespace(RDF.PREFIX, RDF.NAMESPACE);
-            writer.handleNamespace(RDFS.PREFIX, RDFS.NAMESPACE);
-            writer.handleNamespace(DCAT.PREFIX, DCAT.NAMESPACE);
-            writer.handleNamespace(XMLSchema.PREFIX, XMLSchema.NAMESPACE);
-            writer.handleNamespace(OWL.PREFIX, OWL.NAMESPACE);
-            writer.handleNamespace(DCTERMS.PREFIX, DCTERMS.NAMESPACE);
-            for (Statement st : statements) {
-                writer.handleStatement(st);
-            }
-            writer.endRDF();
-        } catch (RepositoryException | RDFHandlerException ex) {
-            LOGGER.error("Error reading RDF statements");
-            String errMsg = ex.getMessage();
-        }
-        return sw.toString();
-    }
-    
+    }  
 }

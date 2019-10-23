@@ -28,12 +28,11 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.10.RELEASE</version>
+        <version>2.2.0.RELEASE</version>
     </parent>
     
     <properties>
-        <simplejson.version>1.1</simplejson.version>           
-        <log4j.version>2.9.1</log4j.version>  
+        <simplejson.version>1.1</simplejson.version>
         <guava.version>23.0</guava.version>   
         <java.version>1.8</java.version>
         <springfox.version>2.9.2</springfox.version>
@@ -50,18 +49,7 @@
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-        </dependency>    
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${simplejson.version}</version>
         </dependency>        
         <dependency>
             <groupId>com.google.guava</groupId>

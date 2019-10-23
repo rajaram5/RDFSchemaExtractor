@@ -41,8 +41,6 @@ import nl.rajaram.rdfschemaextractor.api.utils.OWL2Utils;
 import nl.rajaram.rdfschemaextractor.model.drawio.RDFInstance;
 import nl.rajaram.rdfschemaextractor.model.drawio.Property;
 import nl.rajaram.rdfschemaextractor.model.io.DrawioParser;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -67,8 +65,6 @@ import org.xml.sax.SAXException;
  */
 @Service
 public class DrawIoService {
-
-    private static final Logger LOGGER = LogManager.getLogger(DrawIoService.class);
 
     private final String GET_INSTANCES_QUERY = "get_instances.rq";
     

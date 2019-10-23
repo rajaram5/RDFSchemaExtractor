@@ -31,8 +31,6 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import nl.rajaram.rdfschemaextractor.api.service.DrawIoService;
 import nl.rajaram.rdfschemaextractor.api.utils.RDFUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,48 +52,21 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/drawIo")
 public class DrawIOController {
-    
-    private static final Logger LOGGER = LogManager.getLogger(DrawIOController.class);
     private final ValueFactory VALUE_FACTORY = SimpleValueFactory.getInstance();
     @Autowired
     private DrawIoService drawIoService;
     
-    @RequestMapping(value = "/generateApplicationOntology", method = RequestMethod.POST,
-            produces = {"application/n-triples", "text/turtle",
-                "application/rdf+xml"})
+    @RequestMapping(value = "/convertToApplicationOntology", method = RequestMethod.POST,
+            produces = {"application/n-triples", "text/turtle", "application/rdf+xml"})
     @ResponseStatus(HttpStatus.OK)
-    public String generateApplicationOntology(final HttpServletRequest request, 
+    public String convertToApplicationOntology(final HttpServletRequest request, 
             @RequestParam("file") MultipartFile file) throws IOException, Exception {
         String sessionDir = request.getSession().getId();
-        LOGGER.info("Request to generate application ontology");
-        String content = drawIoService.getApplicationOntology(sessionDir, file);
-        
-        content = RDFUtils.getString(content, RDFUtils.getRDFFormat(request.getHeader("Accept")));
+        //LOGGER.info("Request to generate application ontology");
+        String content = drawIoService.getApplicationOntology(sessionDir, file);        
+        content = RDFUtils.convertRDFString(content,
+                RDFUtils.getRDFFormat(request.getHeader("Accept")));
         return content;
     }
-    
-    
-    @RequestMapping(value = "/generateRML", method = RequestMethod.POST,
-            produces = {"application/n-triples", "text/turtle",
-                "application/rdf+xml"})
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public String generateRMLMappings(final HttpServletRequest request, 
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "rmlBaseUri", required = false) String rmlBaseUri)
-            throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-    
-    
-    @RequestMapping(value = "/generateOpenRefineJSON", method = RequestMethod.POST,
-            produces = {"application/json"})
-    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-    public String generateOpenRefineJSON(final HttpServletRequest request, 
-            @RequestParam("file") MultipartFile file) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-    
-    
-    
     
 }

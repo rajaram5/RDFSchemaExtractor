@@ -78,28 +78,21 @@ public class DrawIOController {
     @RequestMapping(value = "/generateRML", method = RequestMethod.POST,
             produces = {"application/n-triples", "text/turtle",
                 "application/rdf+xml"})
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     public String generateRMLMappings(final HttpServletRequest request, 
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "rmlBaseUri", required = false) String rmlBaseUri)
-            throws IOException, Exception {
-        String sessionDir = request.getSession().getId();
-        LOGGER.info("Request to generate RML mappings");
-        String content = drawIoService.getRMLMappings(sessionDir, file, rmlBaseUri);
-        
-        content = RDFUtils.getString(content, RDFUtils.getRDFFormat(request.getHeader("Accept")));
-        return content;
+            throws UnsupportedOperationException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     
     @RequestMapping(value = "/generateOpenRefineJSON", method = RequestMethod.POST,
             produces = {"application/json"})
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     public String generateOpenRefineJSON(final HttpServletRequest request, 
-            @RequestParam("file") MultipartFile file) throws IOException {
-        String sessionDir = request.getSession().getId();
-        LOGGER.info("Request to generate OpenRefine JSON prov blob");
-        return drawIoService.getOpenRefineJSON(sessionDir, file);
+            @RequestParam("file") MultipartFile file) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     

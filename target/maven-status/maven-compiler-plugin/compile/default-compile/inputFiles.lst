@@ -1,0 +1,15 @@
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/api/utils/RDFUtils.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/model/drawio/Property.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/api/utils/TestCode.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/api/utils/CommandLineUtils.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/model/drawio/RDFInstance.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/api/service/DrawIoService.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/api/service/TavernaWorkflowService.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/api/configuration/SwaggerConfig.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/api/controller/Application.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/api/controller/DrawIOController.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/model/io/DrawioParser.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/api/controller/ApplicationOntologyController.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/api/utils/OWL2Utils.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/api/service/ApplicationOntologyService.java
+/home/rajaram/work/dtl/RDFSchemaExtractor/src/main/java/nl/rajaram/drawingextractor/api/storage/AGraphManager.java

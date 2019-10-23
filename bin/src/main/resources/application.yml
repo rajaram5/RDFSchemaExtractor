@@ -1,0 +1,14 @@
+outputDir: /tmp/drawingExtractor
+taverna:
+    baseDir: /home/rajaram/programs/taverna-commandline-core-2.5.0
+    runScriptName: executeworkflow.sh    
+agraph:
+    agloadDir: /home/rajaram/programs/ag5_1/lib
+    agloadName: agload
+    username: raja
+    password: raja
+    port: 10035
+    endpoint: http://localhost:10035
+    repositoryName: test-wf
+rmlMappings:
+    baseUrl: http://rdf.biosemantics.org/resource/rml/

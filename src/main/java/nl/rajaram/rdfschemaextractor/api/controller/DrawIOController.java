@@ -28,11 +28,17 @@
 package nl.rajaram.rdfschemaextractor.api.controller;
 
 import java.io.IOException;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.parsers.ParserConfigurationException;
 import nl.rajaram.rdfschemaextractor.api.service.DrawIoService;
+import nl.rajaram.rdfschemaextractor.api.utils.OWL2Utils;
 import nl.rajaram.rdfschemaextractor.api.utils.RDFUtils;
-import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import nl.rajaram.rdfschemaextractor.model.drawio.RDFInstance;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.xml.sax.SAXException;
 
 /**
  * Handle API calls related to DrawIO
@@ -53,6 +60,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/drawIo")
 public class DrawIOController {
     
+    private static final Logger logger = LoggerFactory.getLogger(DrawIOController.class);
+    
     @Autowired
     private DrawIoService drawIoService;
     
@@ -60,13 +69,32 @@ public class DrawIOController {
             produces = {"application/n-triples", "text/turtle", "application/rdf+xml"})
     @ResponseStatus(HttpStatus.OK)
     public String convertToApplicationOntology(final HttpServletRequest request, 
-            @RequestParam("file") MultipartFile file) throws IOException, Exception {
-        String sessionDir = request.getSession().getId();
-        //LOGGER.info("Request to generate application ontology");
-        String content = drawIoService.getApplicationOntology(sessionDir, file);        
-        content = RDFUtils.convertRDFString(content,
+            @RequestParam("file") MultipartFile file) throws IOException, 
+            ParserConfigurationException, SAXException, IllegalArgumentException {
+        
+        logger.info("Request to generate application ontology");
+        List<RDFInstance> instances = drawIoService.getApplicationOntology(file);
+        List<Statement> stmt = OWL2Utils.getStatements(instances);
+        
+        if (stmt.isEmpty()) {
+            
+        }
+        String content = RDFUtils.getString(stmt,
                 RDFUtils.getRDFFormat(request.getHeader("Accept")));
         return content;
+    }
+    
+    
+    @RequestMapping(value = "/validateDrawIoDrawing", method = RequestMethod.POST,
+            produces = {"application/json"})
+    @ResponseStatus(HttpStatus.OK)
+    public List<RDFInstance> validateDrawIoDrawing(final HttpServletRequest request, 
+            @RequestParam("file") MultipartFile file) throws IOException, 
+            ParserConfigurationException, SAXException, IllegalArgumentException {
+        
+        logger.info("Request to validate DrawIo drawing");
+        List<RDFInstance> instances = drawIoService.validDrawIODrawing(file);        
+        return instances;
     }
     
 }

@@ -25,54 +25,35 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package nl.rajaram.rdfschemaextractor.model.drawio;
+package nl.rajaram.rdfschemaextractor.api.controller.advice;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import javax.xml.parsers.ParserConfigurationException;
+import nl.rajaram.rdfschemaextractor.api.controller.DrawIOController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.xml.sax.SAXException;
 
 /**
- * Object to represent RDF instance
+ * Exception advisor for DrawIOController
  *
  * @author Rajaram Kaliyaperumal <rr.kaliyaperumal@gmail.com>
- * @since 2019-10-17
+ * @since 2019-10-24
  * @version 0.1
  */
-public class RDFInstance {    
+@ControllerAdvice(assignableTypes = DrawIOController.class)
+public class DrawIOControllerAdvice {
     
-    
-    private IRI type = RDFS.RESOURCE;
-    private List<Property> properties = new ArrayList();
-    
-
-    /**
-     * @return the type
-     */
-    public IRI getType() {
-        return type;
-    }
-
-    /**
-     * @param type the type to set
-     */
-    public void setType(IRI type) {
-        this.type = type;
-    }
-
-    /**
-     * @return the properties
-     */
-    public List<Property> getProperties() {
-        return properties;
-    }
-
-    /**
-     * @param properties the properties to set
-     */
-    public void setProperties(List<Property> properties) {
-        this.properties = properties;
+    @ExceptionHandler(SAXException.class)
+    public ResponseEntity<String> exception(SAXException exception) {
+        return new ResponseEntity<>("Error reading input XML file. Please check input XML file.",
+                HttpStatus.UNPROCESSABLE_ENTITY);
     }
     
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> exception(IllegalArgumentException exception) {
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
 }

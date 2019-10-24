@@ -29,10 +29,7 @@ package nl.rajaram.rdfschemaextractor.api.service;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,8 +39,11 @@ import nl.rajaram.rdfschemaextractor.model.drawio.RDFInstance;
 import nl.rajaram.rdfschemaextractor.model.drawio.Property;
 import nl.rajaram.rdfschemaextractor.model.io.DrawioParser;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.TupleQuery;
 import org.eclipse.rdf4j.query.TupleQueryResult;
@@ -52,6 +52,8 @@ import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.SAXException;
@@ -66,140 +68,181 @@ import org.xml.sax.SAXException;
 @Service
 public class DrawIoService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrawIoService.class);
+
     private final String GET_INSTANCES_QUERY = "get_instances.rq";
-    
+
     private final String GET_INSTANCE_TYPE_QUERY = "get_instance_type.rq";
-    
+
     private final String GET_ALL_PROPERTIES_OF_INSTANCE_QUERY = "get_all_properties_of_instance.rq";
-    
+
     private static final ValueFactory VALUEFACTORY = SimpleValueFactory.getInstance();
 
-    public String getApplicationOntology(String subFolderName, MultipartFile inputfile) 
-            throws IOException, FileNotFoundException, ParserConfigurationException, SAXException {
+    public List<RDFInstance> getApplicationOntology(MultipartFile inputfile) throws SAXException,
+            IllegalArgumentException, ParserConfigurationException, IOException {
+        
+        if (inputfile.isEmpty()) {
+            throw new IllegalArgumentException("Input XML file is empty. Please check input file.");
+        }
 
         DrawioParser parser = new DrawioParser();
-        String rdfStr = parser.parse(inputfile.getInputStream());
+        List<Statement> stmt = parser.parseToRDF(inputfile.getInputStream());
 
         Repository db = new SailRepository(new MemoryStore());
-        db.initialize();
+        db.init();
         List<RDFInstance> instances = new ArrayList();
 
-        // Open a connection to the database
         try (RepositoryConnection conn = db.getConnection()) {
-            try (InputStream input
-                    = new ByteArrayInputStream(rdfStr.getBytes());) {
-                // add the RDF data from the inputstream directly to our database
-                conn.add(input, "", RDFFormat.TURTLE);
-            }
+
+            conn.add(stmt);
+            List<String> instanceIds = getInstanceIds(db);
+            LOGGER.info("Number of instance  = " + instanceIds.size());         
             
+            if (instanceIds.isEmpty()) {            
+                throw new IllegalArgumentException("Invalid input XML file. "
+                        + "No instances found in the input xml file. Did you use rombus shape to "
+                        + "denote instances in the input file?");        
+            }
 
-            for (String s : getInstances(db)) {
+            for (String id : instanceIds) {
+                RDFInstance ins = getRDFInstance(id, db);
 
-                System.out.println("Instance id : " + s);
+                if (!ins.getProperties().isEmpty()) {
+                    instances.add(ins);                
+                }
                 
-                instances.add(getInstance(s, db));
             }
+            LOGGER.info("Number of instance with properties = " + instances.size());
             
-            System.out.println(instances.size());
-
+            if (instances.isEmpty()) {            
+                throw new IllegalArgumentException("Invalid input XML file. " +  instanceIds.size() 
+                        + " instances found but no predicates associated with these instances "
+                                + "are found. Did you follow rdf schema drawing guidelines?");        
+            }
         } finally {
-            // Before our program exits, make sure the database is properly shut down.
             db.shutDown();
         }
 
-        return OWL2Utils.getString(instances, RDFFormat.TURTLE);
+        return instances;
     }
     
-    private RDFInstance getInstance(String instanceId, Repository db) throws IOException {
-    	
-    	RDFInstance ins = null;
-    	
-        try (RepositoryConnection conn = db.getConnection()) {
-            
-            URL fileURL = DrawIoService.class.getResource(GET_ALL_PROPERTIES_OF_INSTANCE_QUERY);
-            String queryString = Resources.toString(fileURL, Charsets.UTF_8);            
-            queryString = queryString.replace("INPUT_ID", instanceId); 
-            
-            TupleQuery query = conn.prepareTupleQuery(queryString);
+    
+    public List<RDFInstance> validDrawIODrawing(MultipartFile inputfile) throws SAXException,
+            IllegalArgumentException, ParserConfigurationException, IOException {
+        
+        if (inputfile.isEmpty()) {
+            throw new IllegalArgumentException("Input XML file is empty. Please check input file.");
+        }
 
-            // A QueryResult is also an AutoCloseable resource, so make sure it gets closed when done.
+        DrawioParser parser = new DrawioParser();
+        List<Statement> stmt = parser.parseToRDF(inputfile.getInputStream());
+
+        Repository db = new SailRepository(new MemoryStore());
+        db.init();
+        List<RDFInstance> instances = new ArrayList();
+
+        try (RepositoryConnection conn = db.getConnection()) {
+
+            conn.add(stmt);
+            List<String> instanceIds = getInstanceIds(db);
+            LOGGER.info("Number of instance  = " + instanceIds.size());         
+            
+            if (instanceIds.isEmpty()) {            
+                return instances;      
+            }
+
+            for (String id : instanceIds) {
+                RDFInstance ins = getRDFInstance(id, db);
+                    instances.add(ins);                
+            }
+            LOGGER.info("Number of instance with properties = " + instances.size());
+        } finally {
+            db.shutDown();
+        }
+
+        return instances;
+    }
+
+    private RDFInstance getRDFInstance(String instanceId, Repository db) throws IOException {
+
+        RDFInstance ins = new RDFInstance();
+
+        try (RepositoryConnection conn = db.getConnection()) {
+
+            URL fileURL = DrawIoService.class.getResource(GET_ALL_PROPERTIES_OF_INSTANCE_QUERY);
+            String queryString = Resources.toString(fileURL, Charsets.UTF_8);
+            queryString = queryString.replace("INPUT_ID", instanceId);
+
+            TupleQuery query = conn.prepareTupleQuery(queryString);
             try (TupleQueryResult result = query.evaluate()) {
-                // we just iterate over all solutions in the result...
-            	ins = new RDFInstance();
-            	List<Property> properties = new ArrayList();
+                
+                List<Property> properties = new ArrayList();
+
                 while (result.hasNext()) {
                     BindingSet solution = result.next();
                     String iriStr = solution.getValue("predicateIRI").stringValue();
-                    System.out.println("?predicateIRI = " + iriStr);
+                    LOGGER.info(" predicateI RI = " + iriStr);
+                    // Create new property object
                     Property p = new Property();
                     p.setIri(VALUEFACTORY.createIRI(iriStr));
                     
+                    // Set predicate range IRI
                     String rangeIri = solution.getValue("rangeIRI").stringValue();
-                	
-                	if(rangeIri != null) {
-                    	p.setRangeIri(VALUEFACTORY.createIRI(rangeIri));
-                	}
-                    
-                    if(solution.getValue("rangeStyleAttribute").stringValue().contains("rounded")) {                    	
-                    	p.setType(VALUEFACTORY.createIRI("http://www.w3.org/2002/07/owl#DatatypeProperty"));
-                    	
+                    if (rangeIri != null) {
+                        p.setRangeIri(VALUEFACTORY.createIRI(rangeIri));
                     }
-                    else {
-                    	p.setType(VALUEFACTORY.createIRI("http://www.w3.org/2002/07/owl#ObjectProperty"));              	
-                    	
+                    // Check if predicate is a data property
+                    if (solution.getValue("rangeStyleAttribute").stringValue().contains("rounded")){
+                        p.setType(OWL.DATATYPEPROPERTY);
+                    } else {  // else set predicate to object property
+                        p.setType(OWL.OBJECTPROPERTY);
                     }
                     
-                    if(solution.getValue("rangeStyleAttribute").stringValue().contains("rhombus")) {                    	
-                    	String rangeid = solution.getValue("rangeId").stringValue();
-                    	
-                    	IRI rangeType = getInstanceType(rangeid, db);
-                    	
-                    	if (rangeType != null) {
-                    		p.setRangeIri(rangeType);
-                    	}
-                    	else {
-                    		p.setRangeIri(VALUEFACTORY.createIRI("http://www.w3.org/2000/01/rdf-schema#Resource"));
-                    	}
+                    // If predicate range is a rdf instance then, set instance type as range 
+                    if (solution.getValue("rangeStyleAttribute").stringValue().contains("rhombus")){
+                        
+                        String rangeid = solution.getValue("rangeId").stringValue();
+                        IRI rangeType = getInstanceType(rangeid, db);
+
+                        if (rangeType != null) {
+                            p.setRangeIri(rangeType);
+                        } else { // if no instance type found then set rdfs:Resource as a range
+                            p.setRangeIri(RDFS.RESOURCE);
+                        }
                     }
-                    
-                    if(solution.getValue("arrowStyleAttribute").stringValue().contains("dashed")) {    
-                    	
-                    	p.setIsOptional(true);
-                    
+                    // If arrow is a dashed line then the property is optional
+                    if (solution.getValue("arrowStyleAttribute").stringValue().contains("dashed")){
+                        p.setIsOptional(true);
                     }
-                    
-                    
+
                     properties.add(p);
                 }
-                
                 ins.setProperties(properties);
             }
         }
-        
-        if (ins != null) {
-        	ins.setType(getInstanceType(instanceId, db));
+
+        IRI instanceType = getInstanceType(instanceId, db);
+        if (instanceType != null) {
+            ins.setType(instanceType);
         }
-    	
-    	return ins;
+
+        return ins;
     }
-    
-    
-private IRI getInstanceType(String instanceId, Repository db) throws IOException {
-    	
-    	IRI type = null;
-    	
+
+    private IRI getInstanceType(String instanceId, Repository db) throws IOException {
+
+        IRI type = null;
+
         try (RepositoryConnection conn = db.getConnection()) {
-            
+
             URL fileURL = DrawIoService.class.getResource(GET_INSTANCE_TYPE_QUERY);
             String queryString = Resources.toString(fileURL, Charsets.UTF_8);
-            
-            queryString = queryString.replace("INPUT_ID", instanceId); 
-            
+
+            queryString = queryString.replace("INPUT_ID", instanceId);
+
             TupleQuery query = conn.prepareTupleQuery(queryString);
 
-            // A QueryResult is also an AutoCloseable resource, so make sure it gets closed when done.
             try (TupleQueryResult result = query.evaluate()) {
-                // we just iterate over all solutions in the result...
                 while (result.hasNext()) {
                     BindingSet solution = result.next();
                     String typeStr = solution.getValue("type").stringValue();
@@ -207,27 +250,25 @@ private IRI getInstanceType(String instanceId, Repository db) throws IOException
                     type = VALUEFACTORY.createIRI(typeStr);
                 }
             }
-        }    	
-    	return type;
+        }
+        return type;
     }
 
-    private List<String> getInstances(Repository db) throws IOException {
+    private List<String> getInstanceIds(Repository db) throws IOException {
 
         List<String> instances = new ArrayList();
 
         try (RepositoryConnection conn = db.getConnection()) {
-            
+
             URL fileURL = DrawIoService.class.getResource(GET_INSTANCES_QUERY);
             String queryString = Resources.toString(fileURL, Charsets.UTF_8);
             TupleQuery query = conn.prepareTupleQuery(queryString);
 
-            // A QueryResult is also an AutoCloseable resource, so make sure it gets closed when done.
             try (TupleQueryResult result = query.evaluate()) {
-                // we just iterate over all solutions in the result...
                 while (result.hasNext()) {
                     BindingSet solution = result.next();
                     String instance = solution.getValue("instanceId").stringValue();
-                    System.out.println("?instanceId = " + instance);
+                    LOGGER.info("Var (?instanceId) value = " + instance);
                     instances.add(instance);
                 }
             }

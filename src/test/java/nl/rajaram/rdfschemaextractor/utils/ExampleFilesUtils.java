@@ -25,54 +25,48 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package nl.rajaram.rdfschemaextractor.model.drawio;
+package nl.rajaram.rdfschemaextractor.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import nl.rajaram.rdfschemaextractor.api.service.DrawIoService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Object to represent RDF instance
+ * Contains references to the example files which are used in the Junit tests.
  *
  * @author Rajaram Kaliyaperumal <rr.kaliyaperumal@gmail.com>
- * @since 2019-10-17
+ * @since 2019-10-24
  * @version 0.1
  */
-public class RDFInstance {    
+public class ExampleFilesUtils {
     
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExampleFilesUtils.class);
     
-    private IRI type = RDFS.RESOURCE;
-    private List<Property> properties = new ArrayList();
+    public static final String PROPER_DIAGRAM = "ProperDrawIoDiagram.xml";
+    public static final String WRONG_DIAGRAM = "DrawIoDiagramWithWrongSymbolSet.xml";
+    public static final String EMPTY_FILE = "empty.xml";
     
-
     /**
-     * @return the type
+     * Method to read the content of a file
+     *
+     * @param fileName File name
+     * @return File content as a InputStream
      */
-    public IRI getType() {
-        return type;
-    }
-
-    /**
-     * @param type the type to set
-     */
-    public void setType(IRI type) {
-        this.type = type;
-    }
-
-    /**
-     * @return the properties
-     */
-    public List<Property> getProperties() {
-        return properties;
-    }
-
-    /**
-     * @param properties the properties to set
-     */
-    public void setProperties(List<Property> properties) {
-        this.properties = properties;
+    public static InputStream getFileContentAsInputStream(String fileName) {
+        InputStream inputStream = null;
+        try {           
+            URL filePath = ExampleFilesUtils.class.getResource(fileName);
+            File file = new File(filePath.getPath());
+            inputStream = new FileInputStream(file);
+        } catch (IOException ex) {
+            LOGGER.error("Error getting turle file", ex);
+        }
+        return inputStream;
     }
     
 }

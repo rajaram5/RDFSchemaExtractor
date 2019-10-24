@@ -53,65 +53,62 @@ import org.eclipse.rdf4j.rio.RDFFormat;
  * @version 0.1
  */
 public class OWL2Utils {
-      
-      private static final ValueFactory VALUEFACTORY = SimpleValueFactory.getInstance();
-    
-    public static String getString(@Nonnull RDFInstance instance,
-            @Nonnull RDFFormat format) {
-        
+
+    private static final ValueFactory VALUEFACTORY = SimpleValueFactory.getInstance();
+
+    public static String getString(@Nonnull RDFInstance instance, @Nonnull RDFFormat format) {
         Preconditions.checkNotNull(instance, "RDFInstance object must not be null.");
         Preconditions.checkNotNull(format, "RDF format must not be null.");
-        
+
         List<Statement> stmt = getInstanceStaements(instance);
-        
-        return RDFUtils.getString(stmt, format);        
+        return RDFUtils.getString(stmt, format);
     }
-      
+
     public static String getString(@Nonnull List<RDFInstance> instances,
             @Nonnull RDFFormat format) {
-        
         Preconditions.checkNotNull(instances, "RDFInstance object must not be null.");
         Preconditions.checkNotNull(format, "RDF format must not be null.");
-        //Preconditions.checkState(!instances.isEmpty(), "RDFInstance object must not be empty.");
-        
-        List<Statement> stmt = new ArrayList();
-        
-        for (RDFInstance ins:instances) {
-            stmt.addAll(getInstanceStaements(ins));
-        }
-        
-        return RDFUtils.getString(stmt, format);        
+        Preconditions.checkState(!instances.isEmpty(), "RDFInstance object must not be empty.");
+
+        List<Statement> stmt = getStatements(instances);
+        return RDFUtils.getString(stmt, format);
     }
     
-    
+    public static List<Statement> getStatements(@Nonnull List<RDFInstance> instances) {
+        Preconditions.checkNotNull(instances, "RDFInstance object must not be null.");
+        Preconditions.checkState(!instances.isEmpty(), "RDFInstance object must not be empty.");
+
+        List<Statement> stmt = new ArrayList();
+        for (RDFInstance ins : instances) {
+            stmt.addAll(getInstanceStaements(ins));
+        }
+        return stmt;
+    }
+
     private static List<Statement> getInstanceStaements(@Nonnull RDFInstance instance) {
-        
-        
+
         Model model = new LinkedHashModel();
         
-        for(Property p:instance.getProperties()) {            
-           model.add(p.getIri(), RDF.TYPE, p.getType());
-           model.add(p.getIri(), RDFS.DOMAIN, instance.getType());
-           model.add(p.getIri(), RDFS.RANGE, p.getRangeIri());   
-           
-           String bnode = Integer.toString(p.getIri().hashCode());
-           
-           int minCardinality = 1;
-           
-           if(p.isIsOptional()) {
-               minCardinality = 0;
-           }
-           
-           model.add(VALUEFACTORY.createBNode(bnode), RDF.TYPE, OWL.RESTRICTION); 
-           model.add(VALUEFACTORY.createBNode(bnode), OWL.ONPROPERTY, p.getIri()); 
-           model.add(VALUEFACTORY.createBNode(bnode), OWL.MINCARDINALITY,
-                   VALUEFACTORY.createLiteral(minCardinality)); 
+        for (Property p : instance.getProperties()) {
+            model.add(p.getIri(), RDF.TYPE, p.getType());
+            model.add(p.getIri(), RDFS.DOMAIN, instance.getType());
+            model.add(p.getIri(), RDFS.RANGE, p.getRangeIri());
+
+            String bnode = Integer.toString(p.getIri().hashCode());
+
+            int minCardinality = 1;
+            if (p.isIsOptional()) {
+                minCardinality = 0;
+            }
+
+            model.add(VALUEFACTORY.createBNode(bnode), RDF.TYPE, OWL.RESTRICTION);
+            model.add(VALUEFACTORY.createBNode(bnode), OWL.ONPROPERTY, p.getIri());
+            model.add(VALUEFACTORY.createBNode(bnode), OWL.MINCARDINALITY,
+                    VALUEFACTORY.createLiteral(minCardinality));
         }
-        
         Iterator<Statement> it = model.iterator();
         List<Statement> statements = ImmutableList.copyOf(it);
-        
+
         return statements;
-        
-    }  
+    }
 }

@@ -32,9 +32,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.xml.parsers.ParserConfigurationException;
+import nl.rajaram.rdfschemaextractor.api.utils.RDFUtils;
 import no.acando.xmltordf.Builder;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.xml.sax.SAXException;
 
 /**
@@ -47,14 +51,17 @@ import org.xml.sax.SAXException;
 public class DrawioParser {
     
     /**
-     * Parse XML string of drawio content to create rdf string
+     * Parse XML string of drawio content to create rdf statements
      *
-     * @param drawioXMLFile Drawio xml content
-     * @return rdf string
-     * @throws java.io.FileNotFoundException Throws this exception if input file is not found
+     * @param drawioXML Drawio xml content
+     * @return List<Statement>
+     * @throws javax.xml.parsers.ParserConfigurationException XML parser error
+     * @throws org.xml.sax.SAXException XML parser error
      */
-    public String parse(@Nonnull InputStream drawioXML) throws FileNotFoundException, ParserConfigurationException, SAXException, IOException {
+    public List<Statement> parseToRDF(@Nonnull InputStream drawioXML) throws SAXException,            
+            ParserConfigurationException, IOException {
         Preconditions.checkNotNull(drawioXML, "Draw.io XML content must not be null.");
+        Preconditions.checkState((drawioXML.available() != 1), "Input xml file must not be empty.");
         
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Builder.getAdvancedBuilderStream().
@@ -63,9 +70,8 @@ public class DrawioParser {
                 .uuidBasedIdInsteadOfBlankNodes("http://rdf.biosemantics.org/resource/")
                 .build().convertToStream(drawioXML, out);
         
-        String rdfString = out.toString();
-        
-        return rdfString;
+        String rdfString = out.toString();        
+        return RDFUtils.convertRDFStringToStatements(rdfString, "", RDFFormat.TURTLE);
     }
     
 }

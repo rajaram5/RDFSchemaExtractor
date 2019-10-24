@@ -25,54 +25,51 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package nl.rajaram.rdfschemaextractor.model.drawio;
+package nl.rajaram.rdfschemaextractor.model.io;
 
-import java.util.ArrayList;
+import java.io.InputStream;
 import java.util.List;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import nl.rajaram.rdfschemaextractor.utils.ExampleFilesUtils;
+import org.eclipse.rdf4j.model.Statement;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
- * Object to represent RDF instance
  *
- * @author Rajaram Kaliyaperumal <rr.kaliyaperumal@gmail.com>
- * @since 2019-10-17
- * @version 0.1
+ * @author rajaram
  */
-public class RDFInstance {    
+public class DrawioParserTest {
     
     
-    private IRI type = RDFS.RESOURCE;
-    private List<Property> properties = new ArrayList();
+    DrawioParser instance = new DrawioParser();
     
-
     /**
-     * @return the type
+     * Test of parseToRDF method, for null inputstream.
      */
-    public IRI getType() {
-        return type;
+    @Test(expected = NullPointerException.class)
+    public void testNullInputStream() throws Exception {
+         instance.parseToRDF(null);
     }
-
+    
     /**
-     * @param type the type to set
+     * Test of parseToRDF method, for proper empty input file.
      */
-    public void setType(IRI type) {
-        this.type = type;
+    @Test(expected = IllegalStateException.class)
+    public void testEmptyInputFile() throws Exception {
+        InputStream drawioXML = ExampleFilesUtils.getFileContentAsInputStream(
+                ExampleFilesUtils.EMPTY_FILE);        
+        instance.parseToRDF(drawioXML);
     }
-
+    
     /**
-     * @return the properties
+     * Test of parseToRDF method, for proper input file.
      */
-    public List<Property> getProperties() {
-        return properties;
-    }
-
-    /**
-     * @param properties the properties to set
-     */
-    public void setProperties(List<Property> properties) {
-        this.properties = properties;
+    @Test
+    public void testParseToRDF() throws Exception {
+        InputStream drawioXML = ExampleFilesUtils.getFileContentAsInputStream(
+                ExampleFilesUtils.PROPER_DIAGRAM);        
+        List<Statement> result = instance.parseToRDF(drawioXML);
+        assertTrue(result.size() > 0);
     }
     
 }

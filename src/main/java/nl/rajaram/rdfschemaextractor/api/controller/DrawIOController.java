@@ -33,10 +33,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.ParserConfigurationException;
 import nl.rajaram.rdfschemaextractor.api.service.DrawIoService;
 import nl.rajaram.rdfschemaextractor.api.utils.OWL2Utils;
-import nl.rajaram.rdfschemaextractor.api.utils.RDFUtils;
+import nl.rajaram.rdfschemaextractor.api.utils.SHACLUtils;
 import nl.rajaram.rdfschemaextractor.model.drawio.RDFInstance;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,26 +62,7 @@ public class DrawIOController {
     private static final Logger logger = LoggerFactory.getLogger(DrawIOController.class);
     
     @Autowired
-    private DrawIoService drawIoService;
-    
-    @RequestMapping(value = "/convertToApplicationOntology", method = RequestMethod.POST,
-            produces = {"application/n-triples", "text/turtle", "application/rdf+xml"})
-    @ResponseStatus(HttpStatus.OK)
-    public String convertToApplicationOntology(final HttpServletRequest request, 
-            @RequestParam("file") MultipartFile file) throws IOException, 
-            ParserConfigurationException, SAXException, IllegalArgumentException {
-        
-        logger.info("Request to generate application ontology");
-        List<RDFInstance> instances = drawIoService.getApplicationOntology(file);
-        List<Statement> stmt = OWL2Utils.getStatements(instances);
-        
-        if (stmt.isEmpty()) {
-            
-        }
-        String content = RDFUtils.getString(stmt,
-                RDFUtils.getRDFFormat(request.getHeader("Accept")));
-        return content;
-    }
+    private DrawIoService drawIoService;   
     
     
     @RequestMapping(value = "/validateDrawIoDrawing", method = RequestMethod.POST,
@@ -95,6 +75,32 @@ public class DrawIOController {
         logger.info("Request to validate DrawIo drawing");
         List<RDFInstance> instances = drawIoService.validDrawIODrawing(file);        
         return instances;
+    }
+    
+    @RequestMapping(value = "/convertToApplicationOntology", method = RequestMethod.POST,
+            produces = {"application/n-triples", "text/turtle", "application/rdf+xml"})
+    @ResponseStatus(HttpStatus.OK)
+    public Model convertToApplicationOntology(final HttpServletRequest request, 
+            @RequestParam("file") MultipartFile file) throws IOException, 
+            ParserConfigurationException, SAXException, IllegalArgumentException {
+        
+        logger.info("Request to generate application ontology");
+        List<RDFInstance> instances = drawIoService.getApplicationOntology(file);
+        Model model = OWL2Utils.getRDFModel(instances);
+        return model;
+    }
+    
+    @RequestMapping(value = "/convertToSHACL", method = RequestMethod.POST,
+            produces = {"text/turtle"})
+    @ResponseStatus(HttpStatus.OK)
+    public Model convertToSHACL(final HttpServletRequest request, 
+            @RequestParam("file") MultipartFile file) throws IOException, 
+            ParserConfigurationException, SAXException, IllegalArgumentException {
+        
+        logger.info("Request to generate application ontology");
+        List<RDFInstance> instances = drawIoService.getApplicationOntology(file);
+        Model model = SHACLUtils.getRDFModel(instances);
+        return model;
     }
     
 }

@@ -22,9 +22,16 @@
  */
 package nl.rajaram.rdfschemaextractor.api.controller;
 
+import nl.rajaram.rdfschemaextractor.api.controller.converter.RDFInstanceListMessageConverter;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {"nl.rajaram.rdfschemaextractor.api.*"})
@@ -32,5 +39,36 @@ public class Application {
     
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
+    }
+    
+    @Configuration
+    public static class MvcConfig implements WebMvcConfigurer {
+        @Bean
+        public RDFInstanceListMessageConverter rdfxml() {
+            return new RDFInstanceListMessageConverter((RDFFormat.RDFXML));
+        }
+        
+        
+        @Bean
+        public RDFInstanceListMessageConverter rdfTurtle() {
+            return new RDFInstanceListMessageConverter((RDFFormat.TURTLE));
+        }
+        
+        @Bean
+        public RDFInstanceListMessageConverter rdfN3() {
+            return new RDFInstanceListMessageConverter((RDFFormat.NTRIPLES));
+        }
+        
+        @Override
+        public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+            configurer.mediaType(RDFFormat.RDFXML.getDefaultFileExtension(),
+                    MediaType.parseMediaType(RDFFormat.RDFXML.getDefaultMIMEType()));
+            
+            configurer.mediaType(RDFFormat.TURTLE.getDefaultFileExtension(),
+                    MediaType.parseMediaType(RDFFormat.TURTLE.getDefaultMIMEType()));
+            
+            configurer.mediaType(RDFFormat.NTRIPLES.getDefaultFileExtension(),
+                    MediaType.parseMediaType(RDFFormat.NTRIPLES.getDefaultMIMEType()));
+        }
     }
 }

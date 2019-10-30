@@ -35,6 +35,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import nl.rajaram.rdfschemaextractor.model.drawio.Property;
 import nl.rajaram.rdfschemaextractor.model.drawio.RDFInstance;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -43,72 +44,71 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.SHACL;
 import org.eclipse.rdf4j.rio.RDFFormat;
 
 /**
- * Utils class to convert object to OWL RDF string
+ * Utils class to convert object to SHCAL RDF string
  *
  * @author Rajaram Kaliyaperumal <rr.kaliyaperumal@gmail.com>
  * @since 2019-10-21
  * @version 0.1
  */
-public class OWL2Utils {
+public class SHACLUtils {
 
     private static final ValueFactory VALUEFACTORY = SimpleValueFactory.getInstance();
-
-//    public static String getString(@Nonnull RDFInstance instance, @Nonnull RDFFormat format) {
-//        Preconditions.checkNotNull(instance, "RDFInstance object must not be null.");
-//        Preconditions.checkNotNull(format, "RDF format must not be null.");
-//
-//        List<Statement> stmt = getInstanceStaements(instance);
-//        return RDFUtils.getString(stmt, format);
-//    }
-
-//    public static String getString(@Nonnull List<RDFInstance> instances,
-//            @Nonnull RDFFormat format) {
-//        Preconditions.checkNotNull(instances, "RDFInstance object must not be null.");
-//        Preconditions.checkNotNull(format, "RDF format must not be null.");
-//        Preconditions.checkState(!instances.isEmpty(), "RDFInstance object must not be empty.");
-//
-//        List<Statement> stmt = getStatements(instances);
-//        return RDFUtils.getString(stmt, format);
-//    }
     
     public static Model getRDFModel(@Nonnull List<RDFInstance> instances) {
         Preconditions.checkNotNull(instances, "RDFInstance object must not be null.");
         Preconditions.checkState(!instances.isEmpty(), "RDFInstance object must not be empty.");
         Model model = new LinkedHashModel();
         
-//        List<Statement> stmt = new ArrayList();
         for (RDFInstance ins : instances) {
-//            stmt.addAll(getInstanceStaements(ins));
-            Model m = getInstanceStaements(ins);
+            Model m = getInstanceModel(ins);
             model.addAll(m);
         }
-//        return stmt;
         return model;
     }
 
-    private static Model getInstanceStaements(@Nonnull RDFInstance instance) {
+    private static Model getInstanceModel(@Nonnull RDFInstance instance) {
 
         Model model = new LinkedHashModel();
         
+        String baseUrl = "http://rdf.biosemantics.org/schal/";
+        
+        String instName = instance.getType().getLocalName();
+        
+        IRI shapeIRI = VALUEFACTORY.createIRI(baseUrl + instName + "Shape");
+        
+        model.add(shapeIRI, RDF.TYPE, SHACL.NODE_SHAPE);
+        model.add(shapeIRI, SHACL.TARGET_CLASS, instance.getType());
+        model.add(shapeIRI, SHACL.NAME, VALUEFACTORY.createLiteral("Shape of " + instName));
+        
         for (Property p : instance.getProperties()) {
-            model.add(p.getIri(), RDF.TYPE, p.getType());
-            model.add(p.getIri(), RDFS.DOMAIN, instance.getType());
-            model.add(p.getIri(), RDFS.RANGE, p.getRangeIri());
-
-            String bnode = Integer.toString(p.getIri().hashCode());
+            
+            String propName = p.getIri().getLocalName();
+            IRI propIRI = VALUEFACTORY.createIRI(shapeIRI.toString() + "/propertyShape"
+                    + propName);
+            
+            model.add(propIRI, RDF.TYPE, SHACL.PROPERTY_SHAPE);
+            model.add(propIRI, SHACL.PATH, p.getIri());
+            model.add(propIRI, SHACL.NAME, VALUEFACTORY.createLiteral("Shape of property "
+                    + propName));
+            
+            if (p.getType() == OWL.OBJECTPROPERTY) {
+                model.add(propIRI, SHACL.CLASS, p.getRangeIri());
+            } else {
+                model.add(propIRI, SHACL.DATATYPE, p.getRangeIri());
+            }
 
             int minCardinality = 1;
             if (p.isIsOptional()) {
                 minCardinality = 0;
             }
 
-            model.add(VALUEFACTORY.createBNode(bnode), RDF.TYPE, OWL.RESTRICTION);
-            model.add(VALUEFACTORY.createBNode(bnode), OWL.ONPROPERTY, p.getIri());
-            model.add(VALUEFACTORY.createBNode(bnode), OWL.MINCARDINALITY,
-                    VALUEFACTORY.createLiteral(minCardinality));
+            model.add(propIRI, SHACL.MIN_COUNT, VALUEFACTORY.createLiteral(minCardinality));
+            
+            model.add(shapeIRI, SHACL.PROPERTY, propIRI);
         }
 
         return model;
